@@ -1,0 +1,44 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper: usuario autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper: es miembro de la familia indicada
+    function isMember(familyId) {
+      return isSignedIn() &&
+        request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.memberIds;
+    }
+
+    // Perfiles de usuario: cada usuario gestiona su propio perfil
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update, delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Familias
+    match /families/{familyId} {
+      // Los miembros pueden leer; cualquier usuario autenticado puede crear una familia
+      allow read: if isMember(familyId);
+      allow create: if isSignedIn();
+      // Solo el dueño puede modificar o eliminar la familia
+      allow update, delete: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+
+      // Tareas de la familia: solo miembros
+      match /tasks/{taskId} {
+        allow read: if isMember(familyId);
+        allow write: if isMember(familyId);
+      }
+
+      // Eventos de la familia: solo miembros
+      match /events/{eventId} {
+        allow read: if isMember(familyId);
+        allow write: if isMember(familyId);
+      }
+    }
+  }
+}
