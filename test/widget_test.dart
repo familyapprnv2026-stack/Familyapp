@@ -4,7 +4,7 @@ import 'package:family_app/main.dart';
 
 void main() {
   testWidgets('App starts on splash screen', (WidgetTester tester) async {
-    await tester.pumpWidget(const FamilyApp());
+    await tester.pumpWidget(FamilyApp());
     await tester.pump();
 
     expect(find.text('FamilyApp'), findsOneWidget);

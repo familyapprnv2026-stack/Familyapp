@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import '../../models/task.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 
 class TasksScreen extends StatefulWidget {
@@ -11,6 +15,94 @@ class TasksScreen extends StatefulWidget {
 
 class _TasksScreenState extends State<TasksScreen> {
   int _selectedTabIndex = 0;
+  late Future<List<Task>> _tasksFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _tasksFuture = _load();
+  }
+
+  Future<List<Task>> _load() async {
+    final auth = context.read<AuthProvider>();
+    final familyId = await auth.familyIdForUser();
+    if (familyId == null) return [];
+    return FirestoreService.getTasks(familyId);
+  }
+
+  void _reload() {
+    setState(() {
+      _tasksFuture = _load();
+    });
+  }
+
+  Future<void> _toggleTask(Task task) async {
+    final auth = context.read<AuthProvider>();
+    final familyId = await auth.familyIdForUser();
+    if (familyId == null) return;
+    await FirestoreService.updateTask(
+      familyId,
+      task.id,
+      {'completed': !task.completed},
+    );
+    if (!mounted) return;
+    _reload();
+  }
+
+  void _openCreate() {
+    context.push('/create-task').then((_) {
+      if (mounted) _reload();
+    });
+  }
+
+  List<Task> _filtered(List<Task> tasks) {
+    switch (_selectedTabIndex) {
+      case 1:
+        return tasks.where((t) => !t.completed).toList();
+      case 2:
+        return tasks.where((t) => t.completed).toList();
+      default:
+        return tasks;
+    }
+  }
+
+  Color _categoryColor(String category) {
+    switch (category) {
+      case 'Hogar':
+        return AppTheme.catHome;
+      case 'Académicas':
+        return AppTheme.catAcademic;
+      case 'Mamá':
+        return AppTheme.catMom;
+      case 'Papá':
+        return AppTheme.catDad;
+      case 'Juan':
+        return AppTheme.catJuan;
+      case 'Sofía':
+        return AppTheme.catSofia;
+      default:
+        return AppTheme.primaryLight;
+    }
+  }
+
+  IconData _categoryIcon(String category) {
+    switch (category) {
+      case 'Hogar':
+        return Icons.home_outlined;
+      case 'Académicas':
+        return Icons.school_outlined;
+      case 'Mamá':
+        return Icons.face_2_outlined;
+      case 'Papá':
+        return Icons.face_outlined;
+      case 'Juan':
+        return Icons.child_care_outlined;
+      case 'Sofía':
+        return Icons.child_friendly_outlined;
+      default:
+        return Icons.task_alt;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +112,6 @@ class _TasksScreenState extends State<TasksScreen> {
         bottom: false,
         child: Column(
           children: [
-            // Top Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
@@ -29,14 +120,13 @@ class _TasksScreenState extends State<TasksScreen> {
                   const Text('Tareas', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
                   IconButton(
                     icon: const Icon(Icons.add, color: Colors.white),
-                    onPressed: () => context.push('/create-task'),
+                    onPressed: _openCreate,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            
-            // White Content Area
+
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -47,77 +137,97 @@ class _TasksScreenState extends State<TasksScreen> {
                     topRight: Radius.circular(32),
                   ),
                 ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // General Progress
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Progreso general', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            const SizedBox(height: 8),
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: FutureBuilder<List<Task>>(
+                  future: _tasksFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final tasks = snapshot.data ?? [];
+                    final done = tasks.where((t) => t.completed).length;
+                    final progress = tasks.isEmpty ? 0.0 : done / tasks.length;
+                    final visible = _filtered(tasks);
+
+                    return SingleChildScrollView(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('3 de 9 completadas', style: TextStyle(color: AppTheme.textSecondary)),
-                                Text('33%', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                                const Text('Progreso general', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('$done de ${tasks.length} completadas', style: const TextStyle(color: AppTheme.textSecondary)),
+                                    Text('${(progress * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                LinearProgressIndicator(
+                                  value: progress,
+                                  backgroundColor: AppTheme.backgroundColor,
+                                  color: AppTheme.primaryColor,
+                                  minHeight: 8,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                               ],
                             ),
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: 0.33,
-                              backgroundColor: AppTheme.backgroundColor,
-                              color: AppTheme.primaryColor,
-                              minHeight: 8,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      
-                      // Categories
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildCategoryCard('Hogar', '2/5 hechas', 0.4, AppTheme.catHome, Icons.home_outlined),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildCategoryCard('Académicas', '1/4 hechas', 0.25, AppTheme.catAcademic, Icons.school_outlined),
+                          const SizedBox(height: 24),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildCategoryCard('Hogar', 'Tareas del hogar', _categoryColor('Hogar'), Icons.home_outlined),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: _buildCategoryCard('Académicas', 'Estudios', _categoryColor('Académicas'), Icons.school_outlined),
+                              ),
+                            ],
                           ),
+                          const SizedBox(height: 24),
+
+                          Row(
+                            children: [
+                              _buildTab(0, 'Todas'),
+                              const SizedBox(width: 8),
+                              _buildTab(1, 'Pendientes'),
+                              const SizedBox(width: 8),
+                              _buildTab(2, 'Completadas'),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          if (snapshot.hasError)
+                            Center(
+                              child: Text(
+                                'Error al cargar las tareas',
+                                style: TextStyle(color: Colors.red.withValues(alpha: 0.7)),
+                              ),
+                            )
+                          else if (visible.isEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(vertical: 32),
+                                child: Text('No hay tareas por aquí', style: TextStyle(color: AppTheme.textHint)),
+                              ),
+                            )
+                          else
+                            for (final task in visible) _buildTaskItem(task),
                         ],
                       ),
-                      const SizedBox(height: 24),
-
-                      // Tabs
-                      Row(
-                        children: [
-                          _buildTab(0, 'Todas'),
-                          const SizedBox(width: 8),
-                          _buildTab(1, 'Pendientes'),
-                          const SizedBox(width: 8),
-                          _buildTab(2, 'Completadas'),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Tasks List
-                      _buildTaskItem('Comprar víveres', 'Mamá', 'Alta', '10', AppTheme.catMom, true, Icons.shopping_cart_outlined),
-                      _buildTaskItem('Reparar grifo cocina', 'Papá', 'Alta', '12', AppTheme.catDad, true, Icons.build_outlined),
-                      _buildTaskItem('Hacer deberes matemáticas', 'Juan', 'Media', '15', AppTheme.catJuan, true, Icons.menu_book_outlined),
-                      _buildTaskItem('Pasear al perro', 'Sofía', 'Media', '22', AppTheme.catSofia, false, Icons.pets_outlined),
-                      _buildTaskItem('Limpiar habitación', 'Juan', 'Baja', '25', AppTheme.catJuan, false, Icons.cleaning_services_outlined),
-                    ],
-                  ),
+                    );
+                  },
                 ),
               ),
             ),
@@ -127,7 +237,7 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildCategoryCard(String title, String subtitle, double progress, Color color, IconData icon) {
+  Widget _buildCategoryCard(String title, String subtitle, Color color, IconData icon) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -149,14 +259,6 @@ class _TasksScreenState extends State<TasksScreen> {
           Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           const SizedBox(height: 4),
           Text(subtitle, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: AppTheme.backgroundColor,
-            color: color,
-            minHeight: 6,
-            borderRadius: BorderRadius.circular(3),
-          ),
         ],
       ),
     );
@@ -188,7 +290,8 @@ class _TasksScreenState extends State<TasksScreen> {
     );
   }
 
-  Widget _buildTaskItem(String title, String assignee, String priority, String dateStr, Color color, bool isCompleted, IconData icon) {
+  Widget _buildTaskItem(Task task) {
+    final color = _categoryColor(task.category);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -198,34 +301,40 @@ class _TasksScreenState extends State<TasksScreen> {
       ),
       child: Row(
         children: [
-          Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked, color: isCompleted ? AppTheme.primaryColor : AppTheme.textHint),
+          GestureDetector(
+            onTap: () => _toggleTask(task),
+            child: Icon(
+              task.completed ? Icons.check_circle : Icons.radio_button_unchecked,
+              color: task.completed ? AppTheme.primaryColor : AppTheme.textHint,
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title, 
+                  task.title,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    decoration: isCompleted ? TextDecoration.lineThrough : null,
-                    color: isCompleted ? AppTheme.textHint : AppTheme.textPrimary,
-                  )
+                    decoration: task.completed ? TextDecoration.lineThrough : null,
+                    color: task.completed ? AppTheme.textHint : AppTheme.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    Text(assignee, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    Text(task.assignee.isEmpty ? task.category : task.assignee, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                     const Text(' • ', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    Text(priority, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    Text(task.priority, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                     const Text(' • 📅 ', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    Text(dateStr, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    Text('${task.date.day}/${task.date.month}/${task.date.year}', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
                   ],
                 )
               ],
             ),
           ),
-          Icon(icon, color: AppTheme.textHint, size: 20),
+          Icon(_categoryIcon(task.category), color: color, size: 20),
           const SizedBox(width: 8),
           const Icon(Icons.chevron_right, color: AppTheme.textHint),
         ],
