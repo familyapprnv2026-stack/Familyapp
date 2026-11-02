@@ -21,26 +21,70 @@ class AppTheme {
   static const Color catJuan = Color(0xFF1ABC9C);     // Verde
   static const Color catSofia = Color(0xFFE91E63);    // Rosa
 
-  static ThemeData get lightTheme {
+  // Colores del modo oscuro
+  static const Color darkBackground = Color(0xFF121212);
+  static const Color darkSurface = Color(0xFF1E1E1E);
+  static const Color darkTextPrimary = Color(0xFFECECEC);
+  static const Color darkTextSecondary = Color(0xFFB0B0B0);
+  static const Color darkTextHint = Color(0xFF757575);
+
+  static ThemeData get lightTheme => _buildTheme(
+        brightness: Brightness.light,
+        scaffold: backgroundColor,
+        surface: surfaceColor,
+        textPrimary: textPrimary,
+        textSecondary: textSecondary,
+        textHint: textHint,
+      );
+
+  static ThemeData get darkTheme => _buildTheme(
+        brightness: Brightness.dark,
+        scaffold: darkBackground,
+        surface: darkSurface,
+        textPrimary: darkTextPrimary,
+        textSecondary: darkTextSecondary,
+        textHint: darkTextHint,
+      );
+
+  static ThemeData _buildTheme({
+    required Brightness brightness,
+    required Color scaffold,
+    required Color surface,
+    required Color textPrimary,
+    required Color textSecondary,
+    required Color textHint,
+  }) {
+    final isDark = brightness == Brightness.dark;
+    final scheme = ColorScheme.fromSeed(
+      seedColor: primaryColor,
+      primary: primaryColor,
+      surface: surface,
+      brightness: brightness,
+    );
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryColor,
-        primary: primaryColor,
-        surface: surfaceColor,
-      ),
-      scaffoldBackgroundColor: backgroundColor,
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
+      brightness: brightness,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: scaffold,
+      textTheme: GoogleFonts.outfitTextTheme(TextTheme(
+        bodyLarge: TextStyle(color: textPrimary),
+        bodyMedium: TextStyle(color: textSecondary),
+      )).copyWith(
         displayLarge: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
         displayMedium: GoogleFonts.outfit(color: textPrimary, fontWeight: FontWeight.bold),
         bodyLarge: GoogleFonts.outfit(color: textPrimary),
         bodyMedium: GoogleFonts.outfit(color: textSecondary),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: primaryColor,
-        foregroundColor: Colors.white,
+      appBarTheme: AppBarTheme(
+        backgroundColor: isDark ? darkSurface : primaryColor,
+        foregroundColor: isDark ? darkTextPrimary : Colors.white,
         centerTitle: true,
         elevation: 0,
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: surface,
+        selectedItemColor: primaryColor,
+        unselectedItemColor: textHint,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -59,7 +103,7 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: surface,
         hintStyle: GoogleFonts.outfit(color: textHint),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -77,4 +121,13 @@ class AppTheme {
       ),
     );
   }
+}
+
+extension ThemeColors on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  Color get surface => Theme.of(this).colorScheme.surface;
+  Color get background => Theme.of(this).scaffoldBackgroundColor;
+  Color get textPrimary => isDark ? AppTheme.darkTextPrimary : AppTheme.textPrimary;
+  Color get textSecondary => isDark ? AppTheme.darkTextSecondary : AppTheme.textSecondary;
+  Color get textHint => isDark ? AppTheme.darkTextHint : AppTheme.textHint;
 }

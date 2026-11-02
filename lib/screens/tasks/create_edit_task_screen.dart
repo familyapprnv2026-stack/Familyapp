@@ -15,22 +15,43 @@ class CreateEditTaskScreen extends StatefulWidget {
 
 class _CreateEditTaskScreenState extends State<CreateEditTaskScreen> {
   static const _priorities = ['Alta', 'Media', 'Baja'];
-  static const _categories = ['Hogar', 'Académicas', 'Mamá', 'Papá', 'Juan', 'Sofía'];
+  static const _categories = ['Hogar', 'Académicas'];
 
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _assigneeController = TextEditingController();
+  List<Map<String, dynamic>> _members = [];
+  String? _assignee;
   DateTime? _date;
   String _priority = 'Media';
   String _category = 'Hogar';
   bool _isSaving = false;
+  bool _loadingMembers = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMembers();
+  }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _assigneeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMembers() async {
+    final auth = context.read<AuthProvider>();
+    final familyId = await auth.familyIdForUser();
+    List<Map<String, dynamic>> members = [];
+    if (familyId != null) {
+      members = await FirestoreService.getFamilyMembers(familyId);
+    }
+    if (!mounted) return;
+    setState(() {
+      _members = members;
+      _loadingMembers = false;
+    });
   }
 
   Future<void> _pickDate() async {
@@ -70,7 +91,7 @@ class _CreateEditTaskScreenState extends State<CreateEditTaskScreen> {
       'date': _date ?? DateTime.now(),
       'priority': _priority,
       'category': _category,
-      'assignee': _assigneeController.text.trim(),
+      'assignee': _assignee ?? '',
       'completed': false,
       'createdBy': auth.user?.uid,
       'createdAt': FieldValue.serverTimestamp(),
@@ -89,25 +110,25 @@ class _CreateEditTaskScreenState extends State<CreateEditTaskScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Título', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Título', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(hintText: 'Título de la tarea'),
+              decoration: InputDecoration(hintText: 'Título de la tarea'),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Descripción', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Descripción', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             TextFormField(
               controller: _descriptionController,
               maxLines: 3,
-              decoration: const InputDecoration(hintText: 'Descripción (Opcional)'),
+              decoration: InputDecoration(hintText: 'Descripción (Opcional)'),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Fecha', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Fecha', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             InkWell(
               onTap: _pickDate,
               borderRadius: BorderRadius.circular(16),
@@ -119,68 +140,95 @@ class _CreateEditTaskScreenState extends State<CreateEditTaskScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, color: AppTheme.primaryColor, size: 20),
-                    const SizedBox(width: 12),
-                    Text(
-                      _date == null
-                          ? 'Seleccionar fecha'
-                          : '${_date!.day}/${_date!.month}/${_date!.year}',
-                      style: TextStyle(
-                        color: _date == null ? AppTheme.textHint : AppTheme.textPrimary,
-                        fontSize: 14,
+                    Icon(Icons.calendar_today_outlined, color: AppTheme.primaryColor, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _date == null
+                            ? 'Seleccionar fecha'
+                            : '${_date!.day}/${_date!.month}/${_date!.year}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: _date == null ? context.textHint : context.textPrimary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Prioridad', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Prioridad', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _priority,
+              isExpanded: true,
               items: _priorities
-                  .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                  .map((p) => DropdownMenuItem(
+                      value: p,
+                      child: Text(p, maxLines: 1, overflow: TextOverflow.ellipsis)))
                   .toList(),
               onChanged: (value) => setState(() => _priority = value ?? 'Media'),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 prefixIcon: Icon(Icons.priority_high, color: AppTheme.primaryColor),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Categoría', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Categoría', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: _category,
+              isExpanded: true,
               items: _categories
-                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .map((c) => DropdownMenuItem(
+                      value: c,
+                      child: Text(c, maxLines: 1, overflow: TextOverflow.ellipsis)))
                   .toList(),
               onChanged: (value) => setState(() => _category = value ?? 'Hogar'),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 prefixIcon: Icon(Icons.category_outlined, color: AppTheme.primaryColor),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Asignado a', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _assigneeController,
-              decoration: const InputDecoration(
-                hintText: 'Miembro de la familia',
-                prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryColor),
-              ),
-            ),
-            const SizedBox(height: 32),
+            Text('Asignado a', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
+            _loadingMembers
+                ? const LinearProgressIndicator()
+                : DropdownButtonFormField<String>(
+                    initialValue: _assignee,
+                    isExpanded: true,
+                    hint: Text('Miembro de la familia',
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: context.textHint)),
+                    items: _members
+                        .map((m) {
+                          final full =
+                              '${m['name']} ${m['lastNames']}'.trim();
+                          return DropdownMenuItem(
+                              value: full,
+                              child: Text(full,
+                                  maxLines: 1, overflow: TextOverflow.ellipsis));
+                        })
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _assignee = value),
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryColor),
+                    ),
+                  ),
+            SizedBox(height: 32),
 
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _save,
                 child: _isSaving
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 24,
                         width: 24,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),

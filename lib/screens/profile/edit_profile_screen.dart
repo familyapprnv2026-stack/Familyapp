@@ -69,9 +69,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Editar Perfil')),
+      appBar: AppBar(title: Text('Editar Perfil')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Column(
@@ -79,45 +79,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   CircleAvatar(
                     radius: 40,
                     backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
-                    child: const Icon(Icons.camera_alt, color: AppTheme.primaryColor, size: 32),
+                    child: Icon(Icons.camera_alt, color: AppTheme.primaryColor, size: 32),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Nombre',
                       prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryColor),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextFormField(
                     controller: _lastNamesController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Apellidos',
                       prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryColor),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   TextFormField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Teléfono',
                       prefixIcon: Icon(Icons.phone_outlined, color: AppTheme.primaryColor),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: _saving ? null : _save,
                       child: _saving
-                          ? const SizedBox(
+                          ? SizedBox(
                               height: 24,
                               width: 24,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : const Text('Guardar Cambios'),
+                          : Text('Guardar Cambios'),
                     ),
                   ),
                 ],

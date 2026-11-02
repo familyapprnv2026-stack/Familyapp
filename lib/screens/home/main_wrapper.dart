@@ -35,11 +35,11 @@ class MainWrapper extends StatelessWidget {
           currentIndex: navigationShell.currentIndex,
           onTap: _goBranch,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: Colors.white,
+          backgroundColor: context.surface,
           selectedItemColor: AppTheme.primaryColor,
-          unselectedItemColor: AppTheme.textHint,
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+          unselectedItemColor: context.textHint,
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),

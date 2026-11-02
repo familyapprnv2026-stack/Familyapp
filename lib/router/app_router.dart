@@ -11,8 +11,16 @@ import '../screens/tasks/tasks_screen.dart';
 import '../screens/tasks/create_edit_task_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
-import '../screens/profile/generic_info_screen.dart';
+import '../screens/profile/settings_screen.dart';
+import '../screens/profile/notifications_screen.dart';
+import '../screens/profile/help_support_screen.dart';
+import '../screens/profile/terms_screen.dart';
+import '../screens/profile/privacy_screen.dart';
+import '../screens/profile/about_screen.dart';
 import '../screens/auth/recover_password_screen.dart';
+import '../screens/auth/verify_email_screen.dart';
+import '../screens/profile/members_screen.dart';
+import '../screens/chat/chat_screen.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -35,6 +43,18 @@ class AppRouter {
         builder: (context, state) => const RecoverPasswordScreen(),
       ),
       GoRoute(
+        path: '/verify-email',
+        builder: (context, state) => const VerifyEmailScreen(),
+      ),
+      GoRoute(
+        path: '/members',
+        builder: (context, state) => const MembersScreen(),
+      ),
+      GoRoute(
+        path: '/chat',
+        builder: (context, state) => const ChatScreen(),
+      ),
+      GoRoute(
         path: '/create-task',
         builder: (context, state) => const CreateEditTaskScreen(isEdit: false),
       ),
@@ -53,27 +73,27 @@ class AppRouter {
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const GenericInfoScreen(title: 'Configuración'),
+        builder: (context, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/notifications',
-        builder: (context, state) => const GenericInfoScreen(title: 'Notificaciones'),
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: '/help',
-        builder: (context, state) => const GenericInfoScreen(title: 'Ayuda y Soporte'),
+        builder: (context, state) => const HelpSupportScreen(),
       ),
       GoRoute(
         path: '/terms',
-        builder: (context, state) => const GenericInfoScreen(title: 'Términos y Condiciones'),
+        builder: (context, state) => const TermsScreen(),
       ),
       GoRoute(
         path: '/privacy',
-        builder: (context, state) => const GenericInfoScreen(title: 'Política de Privacidad'),
+        builder: (context, state) => const PrivacyScreen(),
       ),
       GoRoute(
         path: '/about',
-        builder: (context, state) => const GenericInfoScreen(title: 'Acerca de FamilyApp'),
+        builder: (context, state) => const AboutScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

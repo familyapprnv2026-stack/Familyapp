@@ -73,34 +73,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
         onPressed: _openCreate,
         backgroundColor: Colors.white,
         foregroundColor: AppTheme.primaryColor,
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
                 children: [
-                  Text('Calendario Familiar', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Text(
+                      'Calendario Familiar',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: AppTheme.backgroundColor,
+                decoration: BoxDecoration(
+                  color: context.background,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(32),
                     topRight: Radius.circular(32),
                   ),
                 ),
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
@@ -109,12 +116,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.surface,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Column(
                                 children: [
                                   TableCalendar<FamilyEvent>(
+                                    locale: 'es_ES',
                                     firstDay: DateTime.utc(2020, 10, 16),
                                     lastDay: DateTime.utc(2030, 3, 14),
                                     focusedDay: _focusedDay,
@@ -138,7 +146,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       rightChevronIcon: Icon(Icons.chevron_right, color: AppTheme.primaryColor),
                                     ),
                                     calendarStyle: CalendarStyle(
-                                      selectedDecoration: const BoxDecoration(
+                                      selectedDecoration: BoxDecoration(
                                         color: AppTheme.primaryColor,
                                         shape: BoxShape.circle,
                                       ),
@@ -148,29 +156,29 @@ class _CalendarScreenState extends State<CalendarScreen> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
-                                  const Text('Toca un día para ver sus eventos', style: TextStyle(color: AppTheme.textHint, fontSize: 12)),
+                                  SizedBox(height: 16),
+                                  Text('Toca un día para ver sus eventos', style: TextStyle(color: context.textHint, fontSize: 12)),
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: 24),
 
                             Text(
                               _dayEvents.isNotEmpty ? 'Eventos del día' : 'Próximas actividades',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
 
                             if (_dayEvents.isNotEmpty)
                               for (final event in _dayEvents) _buildEventItem(event)
                             else if (_upcoming.isNotEmpty)
                               for (final event in _upcoming) _buildEventItem(event)
                             else
-                              const Padding(
+                              Padding(
                                 padding: EdgeInsets.symmetric(vertical: 16),
                                 child: Text(
                                   'No hay eventos por aquí todavía. Toca + para crear uno.',
-                                  style: TextStyle(color: AppTheme.textHint),
+                                  style: TextStyle(color: context.textHint),
                                 ),
                               ),
                           ],
@@ -191,36 +199,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.surface,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.event, color: Colors.white, size: 24),
+              child: Icon(Icons.event, color: Colors.white, size: 24),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(event.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                  const SizedBox(height: 4),
+                  Text(event.title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  SizedBox(height: 4),
                   Text(
                     event.location.isEmpty
                         ? AppFormats.dateTime(event.date)
                         : '${AppFormats.dateTime(event.date)} · ${event.location}',
-                    style: const TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                    style: TextStyle(color: context.textSecondary, fontSize: 14),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppTheme.textHint),
+            Icon(Icons.chevron_right, color: context.textHint),
           ],
         ),
       ),

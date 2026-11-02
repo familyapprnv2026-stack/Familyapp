@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -18,17 +19,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _familyCodeController = TextEditingController();
   bool _obscure = true;
   bool _acceptTerms = false;
+  final _termsRecognizer = TapGestureRecognizer();
 
   @override
   void dispose() {
+    _termsRecognizer.dispose();
     _nameController.dispose();
     _lastNamesController.dispose();
     _phoneController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _familyCodeController.dispose();
     super.dispose();
+  }
+
+  void _openTerms() {
+    context.push('/terms');
   }
 
   Future<void> _submit() async {
@@ -46,10 +55,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       phone: _phoneController.text.trim(),
       email: _emailController.text,
       password: _passwordController.text,
+      familyCode: _familyCodeController.text,
     );
     if (!mounted) return;
     if (ok) {
-      context.go('/home');
+      context.go('/verify-email');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(auth.error ?? 'Error al crear la cuenta')),
@@ -68,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             Container(
               height: 250,
               width: double.infinity,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppTheme.primaryColor,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(32),
@@ -88,21 +98,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 40),
+                          child: Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 40),
                         ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'FamilyApp',
-                              style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Organiza tu familia con amor',
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14),
-                            ),
-                          ],
+                        SizedBox(width: 16),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'FamilyApp',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Organiza tu familia con amor',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14),
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
@@ -126,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               alignment: Alignment.center,
-                              child: const Text('Iniciar sesión', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold)),
+                              child: Text('Iniciar sesión', style: TextStyle(color: context.textSecondary, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ),
@@ -138,12 +155,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               borderRadius: BorderRadius.circular(24),
                             ),
                             alignment: Alignment.center,
-                            child: const Text('Registrarse', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            child: Text('Registrarse', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
                     Row(
                       children: [
@@ -151,8 +168,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Nombre', style: TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 8),
+                              Text('Nombre', style: TextStyle(fontWeight: FontWeight.bold)),
+                              SizedBox(height: 8),
                               TextFormField(
                                 controller: _nameController,
                                 validator: (value) {
@@ -161,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   return null;
                                 },
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: 'Tu nombre',
                                   prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryColor),
                                 ),
@@ -169,13 +186,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ],
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Apellidos', style: TextStyle(fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 8),
+                              Text('Apellidos', style: TextStyle(fontWeight: FontWeight.bold)),
+                              SizedBox(height: 8),
                               TextFormField(
                                 controller: _lastNamesController,
                                 validator: (value) {
@@ -184,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   }
                                   return null;
                                 },
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   hintText: 'Tus apellidos',
                                   prefixIcon: Icon(Icons.person_outline, color: AppTheme.primaryColor),
                                 ),
@@ -194,10 +211,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                    const Text('Número de teléfono', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    Text('Número de teléfono', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
@@ -207,15 +224,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         }
                         return null;
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: '+57 300 000 0000',
                         prefixIcon: Icon(Icons.phone_outlined, color: AppTheme.primaryColor),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                    const Text('Correo electrónico', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    Text('Correo electrónico', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -229,15 +246,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         }
                         return null;
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'tu@correo.com',
                         prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryColor),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                    const Text('Contraseña', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    Text('Contraseña', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscure,
@@ -253,18 +270,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       },
                       decoration: InputDecoration(
                         hintText: '••••••••',
-                        prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primaryColor),
+                        prefixIcon: Icon(Icons.lock_outline, color: AppTheme.primaryColor),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: AppTheme.textHint,
+                            color: context.textHint,
                           ),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
+                    Text('Código de familia (opcional)', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: _familyCodeController,
+                      decoration: InputDecoration(
+                        hintText: 'Déjalo vacío para crear tu propia familia',
+                        prefixIcon: Icon(Icons.group_add_outlined, color: AppTheme.primaryColor),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
                     Row(
                       children: [
                         Checkbox(
@@ -272,7 +300,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           onChanged: (val) => setState(() => _acceptTerms = val ?? false),
                           activeColor: AppTheme.primaryColor,
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Text.rich(
                             TextSpan(
                               text: 'Acepto los ',
@@ -280,6 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 TextSpan(
                                   text: 'Términos y Condiciones',
                                   style: TextStyle(color: AppTheme.primaryColor, decoration: TextDecoration.underline),
+                                  recognizer: _termsRecognizer..onTap = _openTerms,
                                 ),
                                 TextSpan(text: ' de FamilyApp'),
                               ],
@@ -289,35 +318,51 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _submit,
                         child: isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 24,
                                 width: 24,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Row(
+                            : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Crear cuenta'),
+                                  Flexible(
+                                    child: Text(
+                                      'Crear cuenta',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                   SizedBox(width: 8),
                                   Icon(Icons.arrow_forward),
                                 ],
                               ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Text('¿Ya tienes cuenta? '),
-                        GestureDetector(
-                          onTap: () => context.go('/login'),
-                          child: const Text('Inicia sesión', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                        Flexible(
+                          child: Text(
+                            '¿Ya tienes cuenta? ',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Flexible(
+                          child: GestureDetector(
+                            onTap: () => context.go('/login'),
+                            child: Text('Inicia sesión', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                          ),
                         ),
                       ],
                     ),

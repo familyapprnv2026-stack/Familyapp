@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../models/task.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/formatters.dart';
+import '../../widgets/initials_avatar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -81,48 +83,72 @@ class _HomeScreenState extends State<HomeScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('FamilyApp', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      Text('Hola, $firstName 👋', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(
-                        AppFormats.longDate(now),
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'FamilyApp',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Hola, $firstName 👋',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          AppFormats.longDate(now),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                      ],
+                    ),
                   ),
+                  SizedBox(width: 8),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.notifications_none, color: Colors.white),
-                      const SizedBox(width: 16),
-                      CircleAvatar(
-                        backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        child: Text(initials, style: const TextStyle(color: Colors.white)),
+                      IconButton(
+                        icon: Icon(Icons.chat_bubble_outline, color: Colors.white),
+                        onPressed: () => context.push('/chat'),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.notifications_none, color: Colors.white),
+                        onPressed: () => context.push('/notifications'),
+                      ),
+                      SizedBox(width: 8),
+                      InitialsAvatar(
+                        initials: initials,
+                        size: 40,
+                        color: Colors.white.withValues(alpha: 0.2),
                       ),
                     ],
                   )
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: AppTheme.backgroundColor,
+                decoration: BoxDecoration(
+                  color: context.background,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(32),
                     topRight: Radius.circular(32),
                   ),
                 ),
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
@@ -131,69 +157,76 @@ class _HomeScreenState extends State<HomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.surface,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Esta semana', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 16),
+                                  Text('Esta semana', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  SizedBox(height: 16),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                       for (int i = 0; i < 7; i++)
-                                        _buildDay(
-                                          AppFormats.weekdaysShort[i],
-                                          (monday.add(Duration(days: i))).day.toString(),
-                                          monday.add(Duration(days: i)).day == now.day,
+                                        Expanded(
+                                          child: _buildDay(
+                                            AppFormats.weekdaysShort[i],
+                                            (monday.add(Duration(days: i))).day.toString(),
+                                            monday.add(Duration(days: i)).day == now.day,
+                                          ),
                                         ),
                                     ],
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: 24),
 
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.surface,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('Tareas familiares', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 8),
+                                  Text('Tareas familiares', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  SizedBox(height: 8),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text(
-                                        '$done de ${_tasks.length} completadas',
-                                        style: const TextStyle(color: AppTheme.textSecondary),
+                                      Expanded(
+                                        child: Text(
+                                          '$done de ${_tasks.length} completadas',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(color: context.textSecondary),
+                                        ),
                                       ),
+                                      SizedBox(width: 8),
                                       Text(
                                         '${(progress * 100).round()}%',
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style: TextStyle(fontWeight: FontWeight.bold),
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8),
                                   LinearProgressIndicator(
                                     value: progress,
-                                    backgroundColor: AppTheme.backgroundColor,
+                                    backgroundColor: context.background,
                                     color: AppTheme.primaryColor,
                                     minHeight: 8,
                                     borderRadius: BorderRadius.circular(4),
                                   ),
-                                  const SizedBox(height: 16),
+                                  SizedBox(height: 16),
                                   if (_tasks.isEmpty)
-                                    const Padding(
+                                    Padding(
                                       padding: EdgeInsets.symmetric(vertical: 16),
                                       child: Text(
                                         'Aún no hay tareas por aquí. Crea la primera desde la pestaña Tareas.',
-                                        style: TextStyle(color: AppTheme.textHint),
+                                        style: TextStyle(color: context.textHint),
                                       ),
                                     )
                                   else
@@ -216,15 +249,34 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildDay(String label, String number, bool isSelected) {
     return Column(
       children: [
-        Text(label, style: TextStyle(color: isSelected ? AppTheme.primaryColor : AppTheme.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-            shape: BoxShape.circle,
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.clip,
+          softWrap: false,
+          style: TextStyle(color: isSelected ? AppTheme.primaryColor : context.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+        ),
+        SizedBox(height: 8),
+        SizedBox(
+          width: 34,
+          height: 34,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.primaryColor : Colors.transparent,
+              shape: BoxShape.circle,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  number,
+                  maxLines: 1,
+                  style: TextStyle(color: isSelected ? Colors.white : context.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal),
+                ),
+              ),
+            ),
           ),
-          child: Text(number, style: TextStyle(color: isSelected ? Colors.white : AppTheme.textPrimary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
         ),
       ],
     );
@@ -236,14 +288,14 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         children: [
-          Icon(task.completed ? Icons.check_circle : Icons.radio_button_unchecked, color: task.completed ? AppTheme.primaryColor : AppTheme.textHint),
-          const SizedBox(width: 12),
+          Icon(task.completed ? Icons.check_circle : Icons.radio_button_unchecked, color: task.completed ? AppTheme.primaryColor : context.textHint),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               task.title,
               style: TextStyle(
                 decoration: task.completed ? TextDecoration.lineThrough : null,
-                color: task.completed ? AppTheme.textHint : AppTheme.textPrimary,
+                color: task.completed ? context.textHint : context.textPrimary,
               ),
             ),
           ),
@@ -255,7 +307,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Text(
               task.assignee.isEmpty ? task.category : task.assignee,
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
         ],

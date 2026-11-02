@@ -35,9 +35,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (ok) {
       context.go('/home');
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(auth.error ?? 'Error al iniciar sesión')),
-      );
+      final err = auth.error ?? '';
+      if (err.toLowerCase().contains('verificar')) {
+        context.go('/verify-email');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(err.isEmpty ? 'Error al iniciar sesión' : err)),
+        );
+      }
     }
   }
 
@@ -52,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Container(
               height: 250,
               width: double.infinity,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppTheme.primaryColor,
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(32),
@@ -72,21 +77,28 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 40),
+                          child: Icon(Icons.family_restroom, color: AppTheme.primaryColor, size: 40),
                         ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'FamilyApp',
-                              style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              'Organiza tu familia con amor',
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14),
-                            ),
-                          ],
+                        SizedBox(width: 16),
+                        Flexible(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'FamilyApp',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                'Organiza tu familia con amor',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 14),
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
@@ -112,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               borderRadius: BorderRadius.circular(24),
                             ),
                             alignment: Alignment.center,
-                            child: const Text('Iniciar sesión', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            child: Text('Iniciar sesión', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                           ),
                         ),
                         Expanded(
@@ -121,16 +133,16 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               alignment: Alignment.center,
-                              child: const Text('Registrarse', style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.bold)),
+                              child: Text('Registrarse', style: TextStyle(color: context.textSecondary, fontWeight: FontWeight.bold)),
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32),
 
-                    const Text('Correo electrónico', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    Text('Correo electrónico', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
@@ -141,15 +153,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         }
                         return null;
                       },
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         hintText: 'tu@correo.com',
                         prefixIcon: Icon(Icons.email_outlined, color: AppTheme.primaryColor),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
-                    const Text('Contraseña', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    Text('Contraseña', style: TextStyle(fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscure,
@@ -162,41 +174,48 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       decoration: InputDecoration(
                         hintText: '••••••••',
-                        prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.primaryColor),
+                        prefixIcon: Icon(Icons.lock_outline, color: AppTheme.primaryColor),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                            color: AppTheme.textHint,
+                            color: context.textHint,
                           ),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => context.push('/recover-password'),
-                        child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppTheme.primaryColor)),
+                        child: Text('¿Olvidaste tu contraseña?', style: TextStyle(color: AppTheme.primaryColor)),
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _submit,
                         child: isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 24,
                                 width: 24,
                                 child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                               )
-                            : const Row(
+                            : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Entrar a mi familia'),
+                                  Flexible(
+                                    child: Text(
+                                      'Entrar a mi familia',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
                                   SizedBox(width: 8),
                                   Icon(Icons.arrow_forward),
                                 ],

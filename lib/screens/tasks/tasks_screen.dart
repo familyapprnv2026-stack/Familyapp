@@ -115,23 +115,29 @@ class _TasksScreenState extends State<TasksScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Tareas', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                  Expanded(
+                    child: Text(
+                      'Tareas',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                   IconButton(
-                    icon: const Icon(Icons.add, color: Colors.white),
+                    icon: Icon(Icons.add, color: Colors.white),
                     onPressed: _openCreate,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             Expanded(
               child: Container(
                 width: double.infinity,
-                decoration: const BoxDecoration(
-                  color: AppTheme.backgroundColor,
+                decoration: BoxDecoration(
+                  color: context.background,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(32),
                     topRight: Radius.circular(32),
@@ -141,7 +147,7 @@ class _TasksScreenState extends State<TasksScreen> {
                   future: _tasksFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(child: CircularProgressIndicator());
                     }
                     final tasks = snapshot.data ?? [];
                     final done = tasks.where((t) => t.completed).length;
@@ -156,25 +162,33 @@ class _TasksScreenState extends State<TasksScreen> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: context.surface,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text('Progreso general', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                const SizedBox(height: 8),
+                                Text('Progreso general', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                SizedBox(height: 8),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text('$done de ${tasks.length} completadas', style: const TextStyle(color: AppTheme.textSecondary)),
-                                    Text('${(progress * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                                    Expanded(
+                                      child: Text(
+                                        '$done de ${tasks.length} completadas',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(color: context.textSecondary),
+                                      ),
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text('${(progress * 100).round()}%', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
+                                SizedBox(height: 8),
                                 LinearProgressIndicator(
                                   value: progress,
-                                  backgroundColor: AppTheme.backgroundColor,
+                                  backgroundColor: context.background,
                                   color: AppTheme.primaryColor,
                                   minHeight: 8,
                                   borderRadius: BorderRadius.circular(4),
@@ -182,31 +196,31 @@ class _TasksScreenState extends State<TasksScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
 
                           Row(
                             children: [
                               Expanded(
                                 child: _buildCategoryCard('Hogar', 'Tareas del hogar', _categoryColor('Hogar'), Icons.home_outlined),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: 16),
                               Expanded(
                                 child: _buildCategoryCard('Académicas', 'Estudios', _categoryColor('Académicas'), Icons.school_outlined),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
 
                           Row(
                             children: [
-                              _buildTab(0, 'Todas'),
-                              const SizedBox(width: 8),
-                              _buildTab(1, 'Pendientes'),
-                              const SizedBox(width: 8),
-                              _buildTab(2, 'Completadas'),
+                              Expanded(child: _buildTab(0, 'Todas')),
+                              SizedBox(width: 4),
+                              Expanded(child: _buildTab(1, 'Pendientes')),
+                              SizedBox(width: 4),
+                              Expanded(child: _buildTab(2, 'Completadas')),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: 24),
 
                           if (snapshot.hasError)
                             Center(
@@ -216,10 +230,10 @@ class _TasksScreenState extends State<TasksScreen> {
                               ),
                             )
                           else if (visible.isEmpty)
-                            const Center(
+                            Center(
                               child: Padding(
                                 padding: EdgeInsets.symmetric(vertical: 32),
-                                child: Text('No hay tareas por aquí', style: TextStyle(color: AppTheme.textHint)),
+                                child: Text('No hay tareas por aquí', style: TextStyle(color: context.textHint)),
                               ),
                             )
                           else
@@ -241,7 +255,7 @@ class _TasksScreenState extends State<TasksScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -249,16 +263,17 @@ class _TasksScreenState extends State<TasksScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
+            clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color),
           ),
-          const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 4),
-          Text(subtitle, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+          SizedBox(height: 12),
+          Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          SizedBox(height: 4),
+          Text(subtitle, style: TextStyle(color: context.textSecondary, fontSize: 12)),
         ],
       ),
     );
@@ -273,16 +288,20 @@ class _TasksScreenState extends State<TasksScreen> {
         });
       },
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryColor : Colors.white,
+          color: isSelected ? AppTheme.primaryColor : context.surface,
           borderRadius: BorderRadius.circular(20),
-          border: isSelected ? null : Border.all(color: AppTheme.backgroundColor),
+          border: isSelected ? null : Border.all(color: context.background),
         ),
         child: Text(
           text,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
+            color: isSelected ? Colors.white : context.textSecondary,
+            fontSize: 13,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -296,7 +315,7 @@ class _TasksScreenState extends State<TasksScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -305,10 +324,10 @@ class _TasksScreenState extends State<TasksScreen> {
             onTap: () => _toggleTask(task),
             child: Icon(
               task.completed ? Icons.check_circle : Icons.radio_button_unchecked,
-              color: task.completed ? AppTheme.primaryColor : AppTheme.textHint,
+              color: task.completed ? AppTheme.primaryColor : context.textHint,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,25 +337,27 @@ class _TasksScreenState extends State<TasksScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     decoration: task.completed ? TextDecoration.lineThrough : null,
-                    color: task.completed ? AppTheme.textHint : AppTheme.textPrimary,
+                    color: task.completed ? context.textHint : context.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Row(
+                SizedBox(height: 4),
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 4,
                   children: [
-                    Text(task.assignee.isEmpty ? task.category : task.assignee, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    const Text(' • ', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    Text(task.priority, style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    const Text(' • 📅 ', style: TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
-                    Text('${task.date.day}/${task.date.month}/${task.date.year}', style: const TextStyle(color: AppTheme.textSecondary, fontSize: 12)),
+                    Text(task.assignee.isEmpty ? task.category : task.assignee, style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                    Text('•', style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                    Text(task.priority, style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                    Text('• 📅', style: TextStyle(color: context.textSecondary, fontSize: 12)),
+                    Text('${task.date.day}/${task.date.month}/${task.date.year}', style: TextStyle(color: context.textSecondary, fontSize: 12)),
                   ],
                 )
               ],
             ),
           ),
           Icon(_categoryIcon(task.category), color: color, size: 20),
-          const SizedBox(width: 8),
-          const Icon(Icons.chevron_right, color: AppTheme.textHint),
+          SizedBox(width: 8),
+          Icon(Icons.chevron_right, color: context.textHint),
         ],
       ),
     );

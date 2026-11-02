@@ -116,88 +116,96 @@ class _CreateEditEventScreenState extends State<CreateEditEventScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Título', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Título', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Título del evento',
                 prefixIcon: Icon(Icons.event, color: AppTheme.primaryColor),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Fecha', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Fecha', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             InkWell(
               onTap: _pickDate,
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surface,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, color: AppTheme.primaryColor, size: 20),
-                    const SizedBox(width: 12),
-                    Text(
-                      AppFormats.shortDate(_date),
-                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                    Icon(Icons.calendar_today_outlined, color: AppTheme.primaryColor, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        AppFormats.shortDate(_date),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      ),
                     ),
-                    const Spacer(),
-                    const Icon(Icons.chevron_right, color: AppTheme.textHint),
+                    const SizedBox(width: 8),
+                    Icon(Icons.chevron_right, color: context.textHint),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Hora', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Hora', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             InkWell(
               onTap: _pickTime,
               borderRadius: BorderRadius.circular(16),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.surface,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.access_time, color: AppTheme.primaryColor, size: 20),
-                    const SizedBox(width: 12),
-                    Text(
-                      _time.format(context),
-                      style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                    Icon(Icons.access_time, color: AppTheme.primaryColor, size: 20),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _time.format(context),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: context.textPrimary, fontSize: 14),
+                      ),
                     ),
-                    const Spacer(),
-                    const Icon(Icons.chevron_right, color: AppTheme.textHint),
+                    const SizedBox(width: 8),
+                    Icon(Icons.chevron_right, color: context.textHint),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            const Text('Ubicación (Opcional)', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
+            Text('Ubicación (Opcional)', style: TextStyle(fontWeight: FontWeight.bold)),
+            SizedBox(height: 8),
             TextFormField(
               controller: _locationController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Ubicación (Opcional)',
                 prefixIcon: Icon(Icons.place_outlined, color: AppTheme.primaryColor),
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
 
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _isSaving ? null : _save,
                 child: _isSaving
-                    ? const SizedBox(
+                    ? SizedBox(
                         height: 24,
                         width: 24,
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
