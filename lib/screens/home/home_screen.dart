@@ -1,31 +1,99 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../models/task.dart';
+import '../../providers/auth_provider.dart';
+import '../../services/firestore_service.dart';
 import '../../theme/app_theme.dart';
+import '../../utils/formatters.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<Task> _tasks = [];
+  Map<String, dynamic>? _profile;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    final auth = context.read<AuthProvider>();
+    final current = auth.user;
+    final profile =
+        current != null ? await FirestoreService.getUserProfile(current.uid) : null;
+    final familyId = profile?['familyId'];
+    final tasks = familyId != null
+        ? await FirestoreService.getTasks(familyId)
+        : <Task>[];
+    if (!mounted) return;
+    setState(() {
+      _profile = profile;
+      _tasks = tasks;
+      _loading = false;
+    });
+  }
+
+  Color _categoryColor(String category) {
+    switch (category) {
+      case 'Hogar':
+        return AppTheme.catHome;
+      case 'Académicas':
+        return AppTheme.catAcademic;
+      case 'Mamá':
+        return AppTheme.catMom;
+      case 'Papá':
+        return AppTheme.catDad;
+      case 'Juan':
+        return AppTheme.catJuan;
+      case 'Sofía':
+        return AppTheme.catSofia;
+      default:
+        return AppTheme.primaryLight;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final name = _profile?['name']?.toString() ?? 'Familia';
+    final firstName = name.trim().split(' ').first;
+    final lastNames = _profile?['lastNames']?.toString() ?? '';
+    final initials = AppFormats.initials(name, lastNames);
+
+    final done = _tasks.where((t) => t.completed).length;
+    final progress = _tasks.isEmpty ? 0.0 : done / _tasks.length;
+    final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - 1));
+
     return Scaffold(
       backgroundColor: AppTheme.primaryColor,
       body: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            // Top Header
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('FamilyApp', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 16),
-                      Text('Hola, Familia 👋', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
-                      SizedBox(height: 4),
-                      Text('martes, 4 de agosto de 2026', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      const Text('FamilyApp', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 16),
+                      Text('Hola, $firstName 👋', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 4),
+                      Text(
+                        AppFormats.longDate(now),
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
                     ],
                   ),
                   Row(
@@ -34,7 +102,7 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       CircleAvatar(
                         backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        child: const Text('MA', style: TextStyle(color: Colors.white)),
+                        child: Text(initials, style: const TextStyle(color: Colors.white)),
                       ),
                     ],
                   )
@@ -42,8 +110,7 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            
-            // White Content Area
+
             Expanded(
               child: Container(
                 width: double.infinity,
@@ -54,79 +121,90 @@ class HomeScreen extends StatelessWidget {
                     topRight: Radius.circular(32),
                   ),
                 ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Weekly Calendar Mock
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(24.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Esta semana', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildDay('L', '3', false),
-                                _buildDay('M', '4', true),
-                                _buildDay('X', '5', false),
-                                _buildDay('J', '6', false),
-                                _buildDay('V', '7', false),
-                                _buildDay('S', '8', false),
-                                _buildDay('D', '9', false),
-                              ],
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Esta semana', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  const SizedBox(height: 16),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      for (int i = 0; i < 7; i++)
+                                        _buildDay(
+                                          AppFormats.weekdaysShort[i],
+                                          (monday.add(Duration(days: i))).day.toString(),
+                                          monday.add(Duration(days: i)).day == now.day,
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Tareas familiares', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '$done de ${_tasks.length} completadas',
+                                        style: const TextStyle(color: AppTheme.textSecondary),
+                                      ),
+                                      Text(
+                                        '${(progress * 100).round()}%',
+                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  LinearProgressIndicator(
+                                    value: progress,
+                                    backgroundColor: AppTheme.backgroundColor,
+                                    color: AppTheme.primaryColor,
+                                    minHeight: 8,
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  if (_tasks.isEmpty)
+                                    const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: Text(
+                                        'Aún no hay tareas por aquí. Crea la primera desde la pestaña Tareas.',
+                                        style: TextStyle(color: AppTheme.textHint),
+                                      ),
+                                    )
+                                  else
+                                    for (final task in _tasks.take(5))
+                                      _buildTaskItem(task),
+                                ],
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      
-                      // Tasks Mock
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('Tareas familiares', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            const SizedBox(height: 8),
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('3 de 9 completadas', style: TextStyle(color: AppTheme.textSecondary)),
-                                Text('33%', style: TextStyle(fontWeight: FontWeight.bold)),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: 0.33,
-                              backgroundColor: AppTheme.backgroundColor,
-                              color: AppTheme.primaryColor,
-                              minHeight: 8,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildTaskItem('Comprar víveres', 'Mamá', AppTheme.catMom, true),
-                            _buildTaskItem('Reparar grifo cocina', 'Papá', AppTheme.catDad, true),
-                            _buildTaskItem('Hacer deberes matemáticas', 'Juan', AppTheme.catJuan, true),
-                            _buildTaskItem('Pasear al perro', 'Sofía', AppTheme.catSofia, false),
-                            _buildTaskItem('Limpiar habitación', 'Juan', AppTheme.catJuan, false),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
           ],
@@ -152,20 +230,21 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTaskItem(String title, String assignee, Color color, bool isCompleted) {
+  Widget _buildTaskItem(Task task) {
+    final color = _categoryColor(task.category);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         children: [
-          Icon(isCompleted ? Icons.check_circle : Icons.radio_button_unchecked, color: isCompleted ? AppTheme.primaryColor : AppTheme.textHint),
+          Icon(task.completed ? Icons.check_circle : Icons.radio_button_unchecked, color: task.completed ? AppTheme.primaryColor : AppTheme.textHint),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              title, 
+              task.title,
               style: TextStyle(
-                decoration: isCompleted ? TextDecoration.lineThrough : null,
-                color: isCompleted ? AppTheme.textHint : AppTheme.textPrimary,
-              )
+                decoration: task.completed ? TextDecoration.lineThrough : null,
+                color: task.completed ? AppTheme.textHint : AppTheme.textPrimary,
+              ),
             ),
           ),
           Container(
@@ -174,7 +253,10 @@ class HomeScreen extends StatelessWidget {
               color: color,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(assignee, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            child: Text(
+              task.assignee.isEmpty ? task.category : task.assignee,
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

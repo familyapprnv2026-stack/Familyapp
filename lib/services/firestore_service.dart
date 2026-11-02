@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/event.dart';
 import '../models/task.dart';
 
 class FirestoreService {
@@ -40,6 +41,18 @@ class FirestoreService {
 
   static Future<Map<String, dynamic>?> getUserProfile(String uid) async {
     final snap = await _db.collection('users').doc(uid).get();
+    return snap.data();
+  }
+
+  static Future<void> updateUserProfile(
+    String uid,
+    Map<String, dynamic> data,
+  ) async {
+    await _db.collection('users').doc(uid).update(data);
+  }
+
+  static Future<Map<String, dynamic>?> getFamily(String familyId) async {
+    final snap = await _db.collection('families').doc(familyId).get();
     return snap.data();
   }
 
@@ -88,6 +101,54 @@ class FirestoreService {
         .doc(familyId)
         .collection('tasks')
         .doc(taskId)
+        .delete();
+  }
+
+  static Future<List<FamilyEvent>> getEvents(String familyId) async {
+    final snap = await _db
+        .collection('families')
+        .doc(familyId)
+        .collection('events')
+        .orderBy('date')
+        .get();
+    return snap.docs
+        .map((doc) => FamilyEvent.fromMap(doc.id, doc.data()))
+        .toList();
+  }
+
+  static Future<void> createEvent(
+    String familyId,
+    Map<String, dynamic> data,
+  ) async {
+    await _db
+        .collection('families')
+        .doc(familyId)
+        .collection('events')
+        .add(data);
+  }
+
+  static Future<void> updateEvent(
+    String familyId,
+    String eventId,
+    Map<String, dynamic> data,
+  ) async {
+    await _db
+        .collection('families')
+        .doc(familyId)
+        .collection('events')
+        .doc(eventId)
+        .update(data);
+  }
+
+  static Future<void> deleteEvent(
+    String familyId,
+    String eventId,
+  ) async {
+    await _db
+        .collection('families')
+        .doc(familyId)
+        .collection('events')
+        .doc(eventId)
         .delete();
   }
 }

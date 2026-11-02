@@ -1,4 +1,5 @@
 import 'package:go_router/go_router.dart';
+import '../models/event.dart';
 import '../screens/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -39,7 +40,12 @@ class AppRouter {
       ),
       GoRoute(
         path: '/create-event',
-        builder: (context, state) => const CreateEditEventScreen(isEdit: false),
+        builder: (context, state) => const CreateEditEventScreen(),
+      ),
+      GoRoute(
+        path: '/edit-event',
+        builder: (context, state) =>
+            CreateEditEventScreen(event: state.extra as FamilyEvent?),
       ),
       GoRoute(
         path: '/edit-profile',
