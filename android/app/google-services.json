@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "144327123280",
-    "project_id": "family-app-2026",
-    "storage_bucket": "family-app-2026.firebasestorage.app"
+    "project_number": "123853669511",
+    "project_id": "familyapp-2026",
+    "storage_bucket": "familyapp-2026.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:144327123280:android:f21d4f67a6b394a2ed0c55",
+        "mobilesdk_app_id": "1:123853669511:android:79088d15ce64d02af6e422",
         "android_client_info": {
           "package_name": "com.familyapp.family_app"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCKrNGVtVFnuloFPqrzzbVnEWzB_1TyZJ8"
+          "current_key": "AIzaSyCQnP0jPqZ-UCEaFhcoMe37DZ8ATGs5QFg"
         }
       ],
       "services": {

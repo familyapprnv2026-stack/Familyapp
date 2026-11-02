@@ -47,29 +47,29 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBL9jmkTdYz4qS4Xbg4kzWvbLV9TX2wZrY',
-    appId: '1:144327123280:web:b3bac9e7b47ee166ed0c55',
-    messagingSenderId: '144327123280',
-    projectId: 'family-app-2026',
-    authDomain: 'family-app-2026.firebaseapp.com',
-    storageBucket: 'family-app-2026.firebasestorage.app',
+    apiKey: 'AIzaSyCNUArbBK9uJxBdZ08g9218klcKUU6QoKA',
+    appId: '1:123853669511:web:6a89ca6e79ca53d9f6e422',
+    messagingSenderId: '123853669511',
+    projectId: 'familyapp-2026',
+    authDomain: 'familyapp-2026.firebaseapp.com',
+    storageBucket: 'familyapp-2026.firebasestorage.app',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCKrNGVtVFnuloFPqrzzbVnEWzB_1TyZJ8',
-    appId: '1:144327123280:android:f21d4f67a6b394a2ed0c55',
-    messagingSenderId: '144327123280',
-    projectId: 'family-app-2026',
-    storageBucket: 'family-app-2026.firebasestorage.app',
+    apiKey: 'AIzaSyCQnP0jPqZ-UCEaFhcoMe37DZ8ATGs5QFg',
+    appId: '1:123853669511:android:79088d15ce64d02af6e422',
+    messagingSenderId: '123853669511',
+    projectId: 'familyapp-2026',
+    storageBucket: 'familyapp-2026.firebasestorage.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBL9jmkTdYz4qS4Xbg4kzWvbLV9TX2wZrY',
-    appId: '1:144327123280:web:dd7ce79f174a4a21ed0c55',
-    messagingSenderId: '144327123280',
-    projectId: 'family-app-2026',
-    authDomain: 'family-app-2026.firebaseapp.com',
-    storageBucket: 'family-app-2026.firebasestorage.app',
+    apiKey: 'AIzaSyCNUArbBK9uJxBdZ08g9218klcKUU6QoKA',
+    appId: '1:123853669511:web:002f4a376c346593f6e422',
+    messagingSenderId: '123853669511',
+    projectId: 'familyapp-2026',
+    authDomain: 'familyapp-2026.firebaseapp.com',
+    storageBucket: 'familyapp-2026.firebasestorage.app',
   );
 
 }
